@@ -13,3 +13,7 @@
 .Renviron
 .Rproj.user
 .Rproj.user/**
+
+# Zipped file
+*.tar.gz
+*.zip
