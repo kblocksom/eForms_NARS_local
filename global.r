@@ -1,0 +1,25 @@
+list.of.packages <- c("shiny","shinyjs","magrittr","purrr","RJSONIO",'stringr','writexl','zip','shinyBS','knitr','kableExtra')
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+lapply(list.of.packages,function(x){library(x,character.only=TRUE)}) 
+
+# library(shiny, warn.conflicts = FALSE)
+# library(shinyjs, warn.conflicts = FALSE)
+# library(magrittr, warn.conflicts = FALSE)
+# library(purrr, warn.conflicts = FALSE)
+# library(RJSONIO)
+# library(stringr)
+# library(writexl)
+# library(zip, warn.conflicts = FALSE)
+# library(shinyBS)
+
+source('functions/eFormsParseJSON_basic.r')
+source('functions/eFormsParseJSONtext.r')
+source('functions/eFormsOrganizeData_byTable_NRSA.r')
+source('functions/eFormsOrganizeData_byTable_NCCA.r')
+source('functions/eFormsOrganizeData_byTable_NLA.r')
+source('functions/parseData.R')
+
+metadata.nrsa <- readRDS("data/metadata.nrsa.rds")
+metadata.nla <- readRDS("data/metadata.nla.rds")
+metadata.ncca <- readRDS("data/metadata.ncca.rds")
