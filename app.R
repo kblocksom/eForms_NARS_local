@@ -10,7 +10,7 @@ source('global.r')
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-   theme="style.css",
+#   theme="style.css",
    shinyjs::useShinyjs(),
    # Application title
    navbarPage("NARS Data Extraction & Reporting Tool for Desktop (v. 1.0)",
@@ -34,9 +34,10 @@ ui <- fluidPage(
                                                             species collected, to be sent by the team lead to the landowner shortly 
                                                             after sampling.'),
                                        br(),
-                                       p('Please direct all questions related to tool troubleshooting and feature requests to
-                                                            Karen Blocksom (Blocksom.Karen@epa.gov).')),
-                                column(1)), br(), hr(), br(),
+                                       # p('Please direct all questions related to tool troubleshooting and feature requests to
+                                       #                      Karen Blocksom (Blocksom.Karen@epa.gov).')
+                                       ),
+                                column(1)), hr(), br(),
                        fluidRow(column(1), column(10, h3(strong('Instructions')),
                                                   p('After compiling all of the .JSON files for a site visit into a single directory, 
                                                   users are ready to extract and organize the data. On the Data Upload and Extraction 
