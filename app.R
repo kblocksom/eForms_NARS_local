@@ -64,7 +64,8 @@ ui <- fluidPage(
                        sidebarPanel(radioButtons('survey',"Select survey app used (select one):",
                                                  choices = c('NRSA 2018-19' = 'nrsa1819',
                                                              'NLA 2017' = 'nla17',
-                                                             'NCCA 2020' = 'ncca20'),
+                                                             'NCCA 2020' = 'ncca20',
+                                                             'NWCA 2021' = 'nwca21'),
                                                  select = ''),
                                     h4(strong('Instructions')),
                                     p('1) Choose the directory where you have saved all of the .JSON files associated 

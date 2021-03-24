@@ -27,15 +27,15 @@ narsOrganizationShiny <- function(surv, pathlist, filelist){
                                              'CONSTRAINT','DISCHARGE','SLOPE','TORRENT')|grepl('PHAB',fileName,ignore.case=TRUE)==TRUE))|
          (surv=='ncca20' & fileName %in% c('ASSESSMENT',
                                            'CALIBRATION','VERIFICATION','SAMPLE',
-                                           'PROFILE','ECOFISH','HHFISH','SAMPLE_PROCESS'))){
+                                           'PROFILE','ECOFISH','HHFISH','SAMPLE_PROCESS'))|
+         (surve=='nwca21' & fileName %in% c('AA1','HYDRO','V3','VEGPLOT','SPECIES','SNAGS','W1','STRESSORS','BUFFER','PTVER','SOIL'))){
         
           rr <- eFormsParseJSON(filePath)
           switch(surv,
                  'nrsa1819' = {tt <- eFormsOrganize_byTable.nrsa(rr)},
                  'ncca20' = {tt <- eFormsOrganize_byTable.ncca(rr)},
-                 'nla17' = {tt <- eFormsOrganize_byTable.nla(rr)}
-                 # ,
-                 # 'nwca21' = {tt <- eFormsOrganize_byTable_NWCA(rr)}
+                 'nla17' = {tt <- eFormsOrganize_byTable.nla(rr)},
+                 'nwca21' = {tt <- eFormsOrganize_byTable.nwca(rr)}
           )
           # tt <- eFormsOrganize_byTable(rr)
           
