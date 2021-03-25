@@ -143,7 +143,8 @@ server <- function(input, output, session) {
 
   # The user data
   observeEvent(input$parseFiles, { 
-    userData$finalOut <- narsOrganizationShiny(input$survey, as.vector(input$directory$datapath), as.vector(input$directory$name))  }) 
+    userData$finalOut <- narsOrganizationShiny(input$survey, as.vector(input$directory$datapath), 
+                                               as.vector(input$directory$name))}) 
   
   
   # Don't let user click download button if no data available

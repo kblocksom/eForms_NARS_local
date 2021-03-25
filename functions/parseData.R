@@ -28,7 +28,7 @@ narsOrganizationShiny <- function(surv, pathlist, filelist){
          (surv=='ncca20' & fileName %in% c('ASSESSMENT',
                                            'CALIBRATION','VERIFICATION','SAMPLE',
                                            'PROFILE','ECOFISH','HHFISH','SAMPLE_PROCESS'))|
-         (surve=='nwca21' & fileName %in% c('AA1','HYDRO','V3','VEGPLOT','SPECIES','SNAGS','W1','STRESSORS','BUFFER','PTVER','SOIL'))){
+         (surv=='nwca21' & fileName %in% c('AA-1','H-1','P-1','P-2','PV-1','S-1','V-1','V-2','V-3','V-4','W-1'))){
         
           rr <- eFormsParseJSON(filePath)
           switch(surv,
