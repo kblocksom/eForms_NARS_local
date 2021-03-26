@@ -103,6 +103,8 @@ narsWriteShiny <- function(surv, filelist, finalList){
     
   }else if(surv=='ncca20'){
     meta <- list(Metadata = metadata.ncca) 
+  }else if(surv=='nwca21'){
+    meta <- list(Metadata = metadata.nwca)
   }
      
   

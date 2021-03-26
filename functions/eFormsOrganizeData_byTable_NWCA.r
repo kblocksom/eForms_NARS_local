@@ -89,9 +89,11 @@ organizePALT.nwca <- function(parsedIn){
     varLong <- names(aa)[!(names(aa) %in% c('SAMPLE_TYPE'))]
     aa.long <- reshape(aa, idvar = c('SAMPLE_TYPE'), varying = varLong, times = varLong,
                        v.names = 'RESULT', timevar = 'variable', direction = 'long')
-    aa.long$LOCATION <- with(aa.long, substring(variable, 8, 9))
+    aa.long$LOCATION <- with(aa.long, ifelse(str_detect(variable, "BUFFER\\.[:alpha:]\\_"),
+                                                        substring(variable, 8, 8), 'ALL'))
     aa.long$PLOT <- '0'
     aa.long$PARAMETER <- with(aa.long, sub('BUFFER\\.', '', variable))
+    aa.long$PARAMETER <- with(aa.long, sub('^[[:alpha:]]\\_', '', PARAMETER))
     
     aa.out <- subset(aa.long, select = c('SAMPLE_TYPE','PLOT','LOCATION','PARAMETER','RESULT'))
   }  
@@ -197,8 +199,13 @@ organizeVegplot.nwca <- function(parsedIn){
   aa.long$variable <- with(aa.long, sub('VEGPLOT\\.', '', variable)) 
   
   aa.long$PLOT <- with(aa.long, ifelse(str_detect(variable, 'LON|LAT|WETLAND_TYPE'), 
-                         substring(variable, nchar(variable), nchar(variable)), '0'))
-  aa.long$PARAMETER <- with(aa.long, ifelse(PLOT=='0', variable, substring(variable, 1, nchar(variable)-2)))
+                         substring(variable, nchar(variable), nchar(variable)), 
+                         ifelse(str_detect(variable, "PLOT\\_[:digit:]") & str_detect(variable,"VEG_PLOT")==FALSE, 
+                                substring(variable, 6, 6), '0')))
+  aa.long$PARAMETER <- with(aa.long, ifelse(PLOT=='0', variable, 
+                                            ifelse(str_detect(variable, 'LAT|LON|WETLAND_TYPE'),
+                                                   substring(variable, 1, nchar(variable)-2),
+                                                   substring(variable, 8, nchar(variable)))))
   
   aa.long <- subset(aa.long, str_detect(PARAMETER, 'REVIEW')==FALSE)
   
@@ -223,7 +230,8 @@ organizeV2.nwca <- function(parsedIn){
     aa.out <- subset(aa.long, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
   }  
   # bb pulls out and formats species by line number and sample type
-  bb <- subset(parsedIn, select=str_detect(names(parsedIn), 'SPECIES\\.[:digit:]'))
+  bb <- subset(parsedIn, select=str_detect(names(parsedIn), 'SPECIES\\.[:digit:]') & 
+                 str_detect(names(parsedIn), 'PLOT_NOT_SAMPLED')==FALSE)
   bb$SAMPLE_TYPE <- 'PLANT'
   
   varLong <- names(bb)[names(bb)!='SAMPLE_TYPE']
@@ -235,15 +243,52 @@ organizeV2.nwca <- function(parsedIn){
   bb.long$PLOT <- with(bb.long, substring(variable, 1, 1))
   bb.long$PARAMETER <- with(bb.long, substring(variable, 3, nchar(variable)))
   
-  bb.out <- subset(bb.long, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+  bb.out <- subset(bb.long, !(PARAMETER %in% c('SPECIES', 'COLLECT_NO')),
+                              select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
   
-  cc.out <- rbind(bb.out, aa.out)
+  # Pull SPECIES and COLLECT_NO to be separate to fill in values for all plots for that line
+  # Species name and COLLECT_NO only occur where species and collection number are first entered
+  cc <- subset(bb.long, PARAMETER %in% c('SPECIES','COLLECT_NO') & RESULT!='' & !is.na(RESULT))
   
-  cc.out.wide <- reshape(cc.out, idvar = c('SAMPLE_TYPE','LINE','PLOT'), direction = 'wide',
+  cc.spp <- subset(cc, select=c('SAMPLE_TYPE','LINE','PARAMETER','RESULT'))
+  cc.spp <- unique(cc.spp)
+
+  cc.plots <- unique(subset(bb.long, select=c('LINE','PLOT')))
+  
+  cc.spp.1 <- merge(cc.spp, cc.plots, by=c('LINE'))
+  
+  cc.out <- subset(cc.spp.1, select=c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+  
+  # Separate out cases where PLOT_NOT_SAMPLED 
+  ns <- subset(parsedIn, select=str_detect(names(parsedIn), 'SPECIES\\.[:digit:]') & 
+                 str_detect(names(parsedIn), 'PLOT_NOT_SAMPLED'))
+  if(ncol(ns)>0){
+    ns$SAMPLE_TYPE <- 'PLANT'
+    
+    varLong <- names(ns)[names(ns)!='SAMPLE_TYPE']
+    ns.long <- reshape(ns, idvar = 'SAMPLE_TYPE', varying = varLong, times = varLong,
+                       v.names = 'RESULT', timevar = 'variable', direction = 'long')
+    ns.long$variable <- with(ns.long, gsub('SPECIES\\.','',variable))
+    
+    ns.long$PLOT <- with(ns.long, substring(variable, 1, 1))
+    ns.long$LINE <- '1'
+    
+    ns.out <- subset(ns.long, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+  }
+  
+  # Now combine into a single data frame
+  if(ncol(ns)>0){
+    dd.out <- rbind(ns.out, cc.out, bb.out, aa.out)
+  }else{
+    dd.out <- rbind(cc.out, bb.out, aa.out)
+  }
+  
+  
+  dd.out.wide <- reshape(dd.out, idvar = c('SAMPLE_TYPE','LINE','PLOT'), direction = 'wide',
                          v.names = 'RESULT', timevar = 'PARAMETER')
-  names(cc.out.wide) <- gsub("RESULT\\.", "", names(cc.out.wide))
+  names(dd.out.wide) <- gsub("RESULT\\.", "", names(dd.out.wide))
   
-  return(cc.out.wide)
+  return(dd.out.wide)
   
 }
 
@@ -258,8 +303,8 @@ organizeV3.nwca <- function(parsedIn){
                        v.names = 'RESULT', timevar = 'variable', direction = 'long')
     aa.long$PLOT <- with(aa.long, substring(variable, 4, 4))
     aa.long$PARAMETER <- with(aa.long, substring(variable, 6, nchar(variable)))
-    aa.long$SAMPLE_TYPE <- with(aa.long, str_detect(variable, "EXPOSED|TIME|DEPTH|LITTER|WD|WATER"),
-                                'GROUND', 'VEGTYPE')
+    aa.long$SAMPLE_TYPE <- with(aa.long, ifelse(str_detect(variable, "EXPOSED|TIME|DEPTH|LITTER|WD|WATER"),
+                                'GROUND', 'VEGTYPE'))
     
     aa.out <- subset(aa.long, select = c('SAMPLE_TYPE','PLOT','PARAMETER','RESULT'))
   }  
@@ -284,8 +329,9 @@ organizeV4.nwca <- function(parsedIn){
     aa.long$V2_LINE <- with(aa.long, ifelse(str_detect(variable.1,"[:digit:]"),
                                             str_extract(variable.1, "[:digit:]"), NA))
     
-    aa.long$PARAMETER <- with(aa.long, sub("[:digit:]\\_", "", variable.1))
-    print(head(aa.long))
+    aa.long$PARAMETER <- with(aa.long, gsub("[[:digit:]]+\\_", "", variable.1))
+    # Must run again to remove the second digit where it exists in the parameter name
+    #aa.long$PARAMETER <- with(aa.long, gsub("[:digit:]\\_", "", PARAMETER))
     
     aa.out <- subset(aa.long, select = c('SAMPLE_TYPE','PLOT','V2_LINE','PARAMETER','RESULT'))
   }  
