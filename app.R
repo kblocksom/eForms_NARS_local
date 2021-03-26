@@ -42,7 +42,7 @@ ui <- fluidPage(
                                                   p('After compiling all of the .JSON files for a site visit into a single directory, 
                                                   users are ready to extract and organize the data. On the Data Upload and Extraction 
                                                   tab, users first select the survey app used to collect the data (NRSA 2018-19, 
-                                                  NLA 2017, or NCCA 2020), then select the directory where their data is saved 
+                                                  NLA 2017, NCCA 2020, or NWCA 2021), then select the directory where their data is saved 
                                                     to upload .JSON files to the app for processing. Once the data is uploaded to 
                                                     the app, click the',
                                                   span(strong('Parse data in selected files')), 'button. Then users will have 
@@ -96,7 +96,7 @@ ui <- fluidPage(
                        sidebarPanel(p('This tool creates a basic report in html format based on data collected during a 
                                           field visit to a site. It can be saved for crew records or provided to the landowner, 
                                           either via email or printed and mailed. At a minimum, the', span(strong('verification form')), 
-                                      'must be submitted.')),
+                                      '(or PV-1 and AA-1 for NWCA) must be submitted.')),
                        mainPanel(
                          shinyjs::disabled(downloadButton('report','Generate Landowner Report (HTML)'))))))
    
