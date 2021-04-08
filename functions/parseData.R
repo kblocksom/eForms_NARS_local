@@ -20,7 +20,7 @@ narsOrganizationShiny <- function(surv, pathlist, filelist){
       fileName <- gsub('.json*', '', fileName)
       fileName <- gsub('.*/', '', fileName)
       # Limit the files that are processed to avoid error if user selects wrong survey
-      if((surv=='nla17' & fileName %in% c('ASSESSMENT','INDEX_SAMPLE','PROFILE_CALIBRATION','LITTORAL_SAMPLE','PHAB','VERIFICATION','PROFILE_DATA'))|
+      if((surv=='nla17' & str_detect(fileName, 'ASSESSMENT|INDEX_SAMPLE|PROFILE_CALIBRATION|LITTORAL_SAMPLE|PHAB|VERIFICATION|PROFILE_DATA'))|
          (surv=='nrsa1819' & (fileName %in% c('FISH','FISHGEAR', 'BENTHIC',
                                              'VERIFICATION',
                                              'FIELD','SAMPLES','ASSESSMENT',
@@ -108,11 +108,7 @@ narsWriteShiny <- function(surv, filelist, finalList){
   }
      
   
-  if(surv=='nrsa1819'){  
-    
-    return(c(map(others,1), phab, meta))
-    
-  }else if(surv=='nla17'){
+  if(surv %in% c('nla17','nrsa1819')){  
     
     return(c(map(others,1), phab, meta))
     
