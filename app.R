@@ -199,7 +199,7 @@ server <- function(input, output, session) {
   
   output$report <- downloadHandler(filename = function(){
     paste(unique(userData$finalOut[[1]][[1]]$UID),
-          "LandownerReport.html",sep="_")
+          "FieldVisitSummary.html",sep="_")
     },
     content= function(file){
       switch(input$survey,
