@@ -77,19 +77,19 @@ ui <- fluidPage(
                                     fileInput(inputId='directory', buttonLabel='Browse...', 
                                               label='Please select files within a folder, holding down Ctrl key to select multiple files.',
                                               multiple=TRUE, accept=c('json','JSON')), 
-                                    p('2) 2) Click on the ‘Parse data’ button below to prepare the uploaded files for conversion to .xlsx and .csv format.'),
+                                    p('2) Click on the ‘Parse data’ button below to prepare the uploaded files for conversion to .xlsx and .csv format.'),
                                     shinyjs::disabled(actionButton('parseFiles','Parse data')),
                                     br(), hr(),
                                     p('3) To download and save the .JSON data in .xlsx or .csv file formats, click on the appropriate
                                       ‘Save Results’ button below.  A directory window will appear allowing you to choose where to 
-                                      save the files.  Note: .xlsx files will save as one file with each .JSON file in a separate 
+                                      save the files. Note: .xlsx files will save as one file with each .JSON file in a separate 
                                       tab while .csv files will save as a .zip file with each .JSON file saved as an individual 
                                       .csv file.'), 
                                     br(),
                                     
                                     downloadButton("downloadxlsx","Save Results as .xlsx"),
                                     downloadButton("downloadcsv","Save Results as .csv")),
-                       bsTooltip('directory','Select directory containing all files for site visit',trigger='hover'),
+                       bsTooltip('directory','Select files for site visit',trigger='hover'),
                        bsTooltip('parseFiles','Click here to parse and organize data',trigger='hover'),
                        bsTooltip('downloadxlsx','Save data to worksheets in an Excel file.',trigger='hover'),
                        bsTooltip('downloadcsv','Save data to comma-delimited files in a .zip file.',trigger='hover'),
@@ -97,9 +97,10 @@ ui <- fluidPage(
                          h5('Uploaded file name(s)'),
                          tableOutput('preview'))),
               tabPanel(span('Field Visit Summary', title='Create a basic report on field activities'),
-                       sidebarPanel(p('This tool creates a basic report in html format based on data collected during a 
-                                          field visit to a site. It can be saved for crew records or provided to the landowner, 
-                                          either via email or printed and mailed. At a minimum, the', span(strong('verification form')), 
+                       sidebarPanel(p('This tool creates a basic report in html format based on data collected 
+                       during a field visit to a site. It can be saved for crew records or provided to the landowner, 
+                                          either via email or printed and mailed. At a minimum, the', 
+                                      span(strong('verification form')), 
                                       '(or PV-1 and AA-1 for NWCA) must be submitted.')),
                        mainPanel(
                          shinyjs::disabled(downloadButton('report','Generate Field Visit Summary (HTML)'))))))
