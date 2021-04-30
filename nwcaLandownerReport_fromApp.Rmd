@@ -83,6 +83,7 @@ if(sampled=='Y' & !is.null(params[['userDataRMD']][['V-2']])){
   spp <- subset(params[['userDataRMD']][['V-2']][[1]], select = c('SPECIES'))
   
   if(sampled=='Y' & nrow(spp)>0){
+    spp <- subset(spp, !is.na(SPECIES))
     spp_tbl <- unique(spp)
     spp_tbl <- spp_tbl[order(spp_tbl$SPECIES),]
   }

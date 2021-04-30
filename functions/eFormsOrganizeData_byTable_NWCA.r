@@ -231,7 +231,8 @@ organizeV2.nwca <- function(parsedIn){
   }  
   # bb pulls out and formats species by line number and sample type
   bb <- subset(parsedIn, select=str_detect(names(parsedIn), 'SPECIES\\.[:digit:]') & 
-                 str_detect(names(parsedIn), 'PLOT_NOT_SAMPLED')==FALSE)
+                 str_detect(names(parsedIn), 'PLOT_NOT_SAMPLED')==FALSE & 
+                 str_detect(names(parsedIn), 'SAMPLE_ID')==FALSE)
   bb$SAMPLE_TYPE <- 'PLANT'
   
   varLong <- names(bb)[names(bb)!='SAMPLE_TYPE']
@@ -272,15 +273,41 @@ organizeV2.nwca <- function(parsedIn){
     
     ns.long$PLOT <- with(ns.long, substring(variable, 1, 1))
     ns.long$LINE <- '1'
+    ns.long$PARAMETER <- with(ns.long, str_remove(variable, '[:digit:]+\\_'))
     
     ns.out <- subset(ns.long, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
   }
   
+  samp <- subset(parsedIn, select=str_detect(names(parsedIn), 'SAMPLE_ID'))
+  if(ncol(samp)>0){
+    samp$SAMPLE_TYPE='PLANT'
+    
+    varLong <- names(samp)[names(samp)!='SAMPLE_TYPE']
+    samp.long <- reshape(samp, idvar = 'SAMPLE_TYPE', varying = varLong, times = varLong,
+                       v.names = 'RESULT', timevar = 'variable', direction = 'long')
+    samp.long$variable <- with(samp.long, gsub('SPECIES\\.','',variable))
+    
+    samp.long$PLOT <- 1
+    samp.long$LINE <- with(samp.long, substring(variable, 1, 1))
+    samp.long$PARAMETER <- with(samp.long, str_remove(variable, '[:digit:]+\\_'))
+    
+    samp.out <- subset(samp.long, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+    
+  }
+  
   # Now combine into a single data frame
   if(ncol(ns)>0){
-    dd.out <- rbind(ns.out, cc.out, bb.out, aa.out)
+    if(ncol(samp)>0){
+      dd.out <- rbind(ns.out, cc.out, bb.out, aa.out, samp.out)
+    }else{
+      dd.out <- rbind(ns.out, cc.out, bb.out, aa.out)
+    }
   }else{
-    dd.out <- rbind(cc.out, bb.out, aa.out)
+    if(ncol(samp)>0){
+      dd.out <- rbind(cc.out, bb.out, aa.out, samp.out)
+    }else{
+      dd.out <- rbind(cc.out, bb.out, aa.out)
+    }
   }
   
   
