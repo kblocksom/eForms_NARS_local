@@ -13,7 +13,7 @@ ui <- fluidPage(
 #   theme="style.css",
    shinyjs::useShinyjs(),
    # Application title
-   navbarPage("NARS Data Extraction & Reporting Tool for Desktop (v. 1.0)",
+   navbarPage("NARS Data Extraction & Reporting Tool for Desktop (v. 1.1)",
               tabPanel(span('About',title='How to use this Shiny app'),
                        fluidRow(column(2, imageOutput("narsLogo")),
                                 column(6,h2(strong('Tool Overview')), offset=1,
@@ -34,8 +34,6 @@ ui <- fluidPage(
                                                             species collected, to be sent by the team lead to the landowner shortly 
                                                             after sampling.'),
                                        br(),
-                                       # p('Please direct all questions related to tool troubleshooting and feature requests to
-                                       #                      Karen Blocksom (Blocksom.Karen@epa.gov).')
                                        ),
                                 column(1)), hr(), br(),
                        fluidRow(column(1), column(10, h3(strong('Instructions')),
