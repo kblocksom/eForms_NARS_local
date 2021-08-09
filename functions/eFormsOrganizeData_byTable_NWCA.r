@@ -240,25 +240,76 @@ organizeV2.nwca <- function(parsedIn){
                      v.names = 'RESULT', timevar = 'variable', direction = 'long')
   bb.long$variable <- with(bb.long, gsub('SPECIES\\.','',variable))
   bb.long$LINE <- with(bb.long, str_extract(variable, '[:digit:]+'))
-  bb.long$variable <- with(bb.long, str_remove(variable, '[:digit:]\\_'))
+  bb.long$variable <- with(bb.long, str_remove(variable, '[:digit:]+\\_'))
   bb.long$PLOT <- with(bb.long, substring(variable, 1, 1))
   bb.long$PARAMETER <- with(bb.long, substring(variable, 3, nchar(variable)))
   
-  bb.out <- subset(bb.long, !(PARAMETER %in% c('SPECIES', 'COLLECT_NO')),
+  bb.out <- subset(bb.long, !(PARAMETER %in% c('SPECIES', 'COLLECT_NO', 'TES_SPECIES')),
                               select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
   
-  # Pull SPECIES and COLLECT_NO to be separate to fill in values for all plots for that line
-  # Species name and COLLECT_NO only occur where species and collection number are first entered
-  cc <- subset(bb.long, PARAMETER %in% c('SPECIES','COLLECT_NO') & RESULT!='' & !is.na(RESULT))
+  # Pull SPECIES to be separate to fill in values for all plots for that line
+  # Species name only occur where species are first entered
+  # There are some cases where more than one species name is listed for a given line number
+  # If value is present for a line, keep it, but if missing, fill in with the first occurrence
+  cc <- subset(bb.long, PARAMETER %in% c('SPECIES') & RESULT!='' & !is.na(RESULT))
   
-  cc.spp <- subset(cc, select=c('SAMPLE_TYPE','LINE','PARAMETER','RESULT'))
+  cc.spp <- subset(cc, select=c('SAMPLE_TYPE','LINE', 'PARAMETER','RESULT'))
   cc.spp <- unique(cc.spp)
 
   cc.plots <- unique(subset(bb.long, select=c('LINE','PLOT')))
   
-  cc.spp.1 <- merge(cc.spp, cc.plots, by=c('LINE'))
+  # Need to see if there are multiple species per line
+ if(nrow(cc.spp[duplicated(cc.spp[,c('SAMPLE_TYPE','LINE','PARAMETER')]),])==0){
+   cc.spp.1 <- merge(cc.spp, cc.plots, by=c('LINE'))
+   
+   cc.out <- subset(cc.spp.1, select=c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+ }else{
+
+   cc.altspp <- subset(bb.long, PARAMETER %in% c('SPECIES'))
+   
+   cc.uniq <- unique(subset(cc.altspp, RESULT!='' & !is.na(RESULT), 
+                     select=c('SAMPLE_TYPE','LINE','PARAMETER','RESULT')))
+   
+   cc.first <- cc.uniq[!duplicated(cc.uniq[,c('SAMPLE_TYPE','LINE','PARAMETER')]),]
+   
+   cc.match <- merge(cc.altspp, cc.plots, by = c('LINE','PLOT'), all.y=TRUE) 
+   cc.match$SAMPLE_TYPE <- 'PLANT'
+   cc.match$PARAMETER <- 'SPECIES'
+   
+   cc.match.1 <- merge(cc.match, cc.first, by = c('SAMPLE_TYPE','LINE','PARAMETER'))
+   
+   cc.match.1$RESULT <- with(cc.match.1, ifelse(is.na(RESULT.x)|RESULT.x=='', RESULT.y, RESULT.x)) 
+   
+   cc.out <- subset(cc.match.1, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+ }
   
-  cc.out <- subset(cc.spp.1, select=c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
+ # Now look at just TES_SPECIES and fill in missing rows that were sampled
+  dd <- subset(bb.long, PARAMETER %in% c('TES_SPECIES') & RESULT!='' & !is.na(RESULT))  
+  
+  dd.uniq <- subset(dd, select=c('SAMPLE_TYPE','LINE','PARAMETER','RESULT'))
+  dd.uniq <- unique(dd.uniq)
+  
+  dd.plots <- unique(subset(bb.long, select=c('LINE','PLOT')))
+  
+  dd.out <- merge(dd.uniq, dd.plots, by = c('LINE'))
+  
+ # Now COLLECT_NO, which may have multiple values and also missing values on a given line
+  coll <- subset(bb.long, PARAMETER %in% c('COLLECT_NO') & RESULT!='' & !is.na(RESULT))
+   
+  coll.plots <- unique(subset(bb.long, LINE %in% coll$LINE, select = c('SAMPLE_TYPE','LINE','PLOT')))
+  
+  coll.uniq <- unique(subset(coll, select=c('LINE','PARAMETER','RESULT')))
+  coll.uniq <- coll.uniq[order(coll.uniq$RESULT, decreasing=TRUE),]
+  
+  coll.first <- coll.uniq[!duplicated(coll.uniq[,c('LINE','PARAMETER')]),]
+  
+  coll.match <- merge(coll.plots, coll.first, by=c('LINE'))
+  
+  coll.match.1 <- merge(coll.match, coll, by=c('SAMPLE_TYPE','LINE','PLOT','PARAMETER'), all.x=TRUE)
+  
+  coll.match.1$RESULT <- with(coll.match.1, ifelse(!is.na(RESULT.y) & RESULT.y!='' & RESULT.x!=RESULT.y, RESULT.y, RESULT.x))
+  
+  coll.out <- subset(coll.match.1, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
   
   # Separate out cases where PLOT_NOT_SAMPLED 
   ns <- subset(parsedIn, select=str_detect(names(parsedIn), 'SPECIES\\.[:digit:]') & 
@@ -287,8 +338,11 @@ organizeV2.nwca <- function(parsedIn){
                        v.names = 'RESULT', timevar = 'variable', direction = 'long')
     samp.long$variable <- with(samp.long, gsub('SPECIES\\.','',variable))
     
+    samp.long <- subset(samp.long, RESULT!='')
+    
     samp.long$PLOT <- 1
-    samp.long$LINE <- with(samp.long, substring(variable, 1, 1))
+    # samp.long$LINE <- with(samp.long, substring(variable, 1, 2))
+    samp.long$LINE <- with(samp.long, gsub("\\_SAMPLE_ID", "", variable))
     samp.long$PARAMETER <- with(samp.long, str_remove(variable, '[:digit:]+\\_'))
     
     samp.out <- subset(samp.long, select = c('SAMPLE_TYPE','LINE','PLOT','PARAMETER','RESULT'))
@@ -298,24 +352,26 @@ organizeV2.nwca <- function(parsedIn){
   # Now combine into a single data frame
   if(ncol(ns)>0){
     if(ncol(samp)>0){
-      dd.out <- rbind(ns.out, cc.out, bb.out, aa.out, samp.out)
+      ee.out <- rbind(ns.out, coll.out, dd.out, cc.out, bb.out, aa.out, samp.out)
     }else{
-      dd.out <- rbind(ns.out, cc.out, bb.out, aa.out)
+      ee.out <- rbind(ns.out, coll.out, dd.out, cc.out, bb.out, aa.out)
     }
   }else{
     if(ncol(samp)>0){
-      dd.out <- rbind(cc.out, bb.out, aa.out, samp.out)
+      ee.out <- rbind(cc.out, coll.out, dd.out, bb.out, aa.out, samp.out)
     }else{
-      dd.out <- rbind(cc.out, bb.out, aa.out)
+      ee.out <- rbind(cc.out, coll.out, dd.out, bb.out, aa.out)
     }
   }
   
   
-  dd.out.wide <- reshape(dd.out, idvar = c('SAMPLE_TYPE','LINE','PLOT'), direction = 'wide',
+  ee.out.wide <- reshape(ee.out, idvar = c('SAMPLE_TYPE','LINE','PLOT'), direction = 'wide',
                          v.names = 'RESULT', timevar = 'PARAMETER')
-  names(dd.out.wide) <- gsub("RESULT\\.", "", names(dd.out.wide))
+  names(ee.out.wide) <- gsub("RESULT\\.", "", names(ee.out.wide))
   
-  return(dd.out.wide)
+  ee.out.wide <- ee.out.wide[with(ee.out.wide, order(as.numeric(LINE), PLOT)),]
+  
+  return(ee.out.wide)
   
 }
 
