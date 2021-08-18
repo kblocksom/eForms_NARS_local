@@ -284,14 +284,14 @@ organizeV2.nwca <- function(parsedIn){
  }
   
  # Now look at just TES_SPECIES and fill in missing rows that were sampled
-  dd <- subset(bb.long, PARAMETER %in% c('TES_SPECIES') & RESULT!='' & !is.na(RESULT))  
+  tes <- subset(bb.long, PARAMETER %in% c('TES_SPECIES') & RESULT!='' & !is.na(RESULT))  
   
-  dd.uniq <- subset(dd, select=c('SAMPLE_TYPE','LINE','PARAMETER','RESULT'))
-  dd.uniq <- unique(dd.uniq)
+  tes.uniq <- subset(tes, select=c('SAMPLE_TYPE','LINE','PARAMETER','RESULT'))
+  tes.uniq <- unique(tes.uniq)
   
-  dd.plots <- unique(subset(bb.long, select=c('LINE','PLOT')))
+  tes.plots <- unique(subset(bb.long, select=c('LINE','PLOT')))
   
-  dd.out <- merge(dd.uniq, dd.plots, by = c('LINE'))
+  tes.out <- merge(tes.uniq, tes.plots, by = c('LINE'))
   
  # Now COLLECT_NO, which may have multiple values and also missing values on a given line
   coll <- subset(bb.long, PARAMETER %in% c('COLLECT_NO') & RESULT!='' & !is.na(RESULT))
@@ -352,15 +352,15 @@ organizeV2.nwca <- function(parsedIn){
   # Now combine into a single data frame
   if(ncol(ns)>0){
     if(ncol(samp)>0){
-      ee.out <- rbind(ns.out, coll.out, dd.out, cc.out, bb.out, aa.out, samp.out)
+      ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, aa.out, tes.out, samp.out)
     }else{
-      ee.out <- rbind(ns.out, coll.out, dd.out, cc.out, bb.out, aa.out)
+      ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, aa.out, tes.out)
     }
   }else{
     if(ncol(samp)>0){
-      ee.out <- rbind(cc.out, coll.out, dd.out, bb.out, aa.out, samp.out)
+      ee.out <- rbind(cc.out, coll.out, bb.out, aa.out, tes.out, samp.out)
     }else{
-      ee.out <- rbind(cc.out, coll.out, dd.out, bb.out, aa.out)
+      ee.out <- rbind(cc.out, coll.out, bb.out, aa.out, tes.out)
     }
   }
   
@@ -370,6 +370,60 @@ organizeV2.nwca <- function(parsedIn){
   names(ee.out.wide) <- gsub("RESULT\\.", "", names(ee.out.wide))
   
   ee.out.wide <- ee.out.wide[with(ee.out.wide, order(as.numeric(LINE), PLOT)),]
+  
+  # We want to order variables in a specific way, so we need to make sure which variables
+  # are in the data and add if necessary
+  if(!is.vector(ee.out.wide$TES_SPECIES)){
+    ee.out.wide$TES_SPECIES <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$COLLECT_NO)){
+    ee.out.wide$COLLECT_NO <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$SAMPLE_ID)){
+    ee.out.wide$SAMPLE_ID <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$ACTUAL_DATE)){
+    ee.out.wide$ACTUAL_DATE <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$COMMENT)){
+    ee.out.wide$COMMENT <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$PLOT_NOT_SAMPLED)){
+    ee.out.wide$PLOT_NOT_SAMPLED <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$PLOT_NOT_SAMPLED_COMMENT)){
+    ee.out.wide$PLOT_NOT_SAMPLED_COMMENT <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$COVER_NE)){
+    ee.out.wide$COVER_NE <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$COVER_NW)){
+    ee.out.wide$COVER_NW <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$COVER_SE)){
+    ee.out.wide$COVER_SE <- ''
+  }
+  
+  if(!is.vector(ee.out.wide$COVER_SW)){
+    ee.out.wide$COVER_SW <- ''
+  }
+  
+  varOrder <- c('SAMPLE_TYPE','LINE','PLOT','PLOT_NOT_SAMPLED',
+                'PLOT_NOT_SAMPLED_COMMENT','SPECIES','COLLECT_NO', 
+                'COVER','HEIGHT','SW','NE','TES_SPECIES',
+                'COMMENT','ACTUAL_DATE','SAMPLE_ID','COVER_NE',
+                'COVER_NW','COVER_SE','COVER_SW')
+  
+  ee.out.wide <- ee.out.wide[, varOrder]
   
   return(ee.out.wide)
   
