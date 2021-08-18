@@ -350,19 +350,35 @@ organizeV2.nwca <- function(parsedIn){
   }
   
   # Now combine into a single data frame
-  if(ncol(ns)>0){
-    if(ncol(samp)>0){
-      ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, aa.out, tes.out, samp.out)
+  if(ncol(aa)>0){
+    if(ncol(ns)>0){
+      if(ncol(samp)>0){
+        ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, aa.out, tes.out, samp.out)
+      }else{
+        ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, aa.out, tes.out)
+      }
     }else{
-      ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, aa.out, tes.out)
+      if(ncol(samp)>0){
+        ee.out <- rbind(cc.out, coll.out, bb.out, aa.out, tes.out, samp.out)
+      }else{
+        ee.out <- rbind(cc.out, coll.out, bb.out, aa.out, tes.out)
+      }
     }
-  }else{
-    if(ncol(samp)>0){
-      ee.out <- rbind(cc.out, coll.out, bb.out, aa.out, tes.out, samp.out)
     }else{
-      ee.out <- rbind(cc.out, coll.out, bb.out, aa.out, tes.out)
+      if(ncol(ns)>0){
+        if(ncol(samp)>0){
+          ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, tes.out, samp.out)
+        }else{
+          ee.out <- rbind(ns.out, coll.out, cc.out, bb.out, tes.out)
+        }
+      }else{
+        if(ncol(samp)>0){
+          ee.out <- rbind(cc.out, coll.out, bb.out, tes.out, samp.out)
+        }else{
+          ee.out <- rbind(cc.out, coll.out, bb.out, tes.out)
+        } 
+      }
     }
-  }
   
   
   ee.out.wide <- reshape(ee.out, idvar = c('SAMPLE_TYPE','LINE','PLOT'), direction = 'wide',
