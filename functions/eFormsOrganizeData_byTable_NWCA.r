@@ -389,7 +389,7 @@ organizeV2.nwca <- function(parsedIn){
   
   # We want to order variables in a specific way, so we need to make sure which variables
   # are in the data and add if necessary
-  if(!is.vector(ee.out.wide$TES_SPECIES)){
+  if(!is.vector(ee.out.wide[['TES_SPECIES']])){
     ee.out.wide$TES_SPECIES <- ''
   }
   
@@ -409,11 +409,11 @@ organizeV2.nwca <- function(parsedIn){
     ee.out.wide$COMMENT <- ''
   }
   
-  if(!is.vector(ee.out.wide$PLOT_NOT_SAMPLED)){
+  if(!is.vector(ee.out.wide[['PLOT_NOT_SAMPLED']])){
     ee.out.wide$PLOT_NOT_SAMPLED <- ''
   }
   
-  if(!is.vector(ee.out.wide$PLOT_NOT_SAMPLED_COMMENT)){
+  if(!is.vector(ee.out.wide[['PLOT_NOT_SAMPLED_COMMENT']])){
     ee.out.wide$PLOT_NOT_SAMPLED_COMMENT <- ''
   }
   
